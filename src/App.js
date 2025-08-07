@@ -1,3 +1,4 @@
+// Minimalist and modern layout injected based on trololol.app design
 import React, { useRef, useState, useEffect } from 'react';
 
 export default function MemeMaker() {
@@ -15,9 +16,7 @@ export default function MemeMaker() {
 
   useEffect(() => {
     const saved = localStorage.getItem('memeGallery');
-    if (saved) {
-      setGallery(JSON.parse(saved));
-    }
+    if (saved) setGallery(JSON.parse(saved));
   }, []);
 
   useEffect(() => {
@@ -47,10 +46,9 @@ export default function MemeMaker() {
 
   const handleDownload = () => {
     drawCanvas();
-    const canvas = canvasRef.current;
     const link = document.createElement('a');
     link.download = 'newface-meme.png';
-    link.href = canvas.toDataURL();
+    link.href = canvasRef.current.toDataURL();
     link.click();
   };
 
@@ -60,111 +58,76 @@ export default function MemeMaker() {
     window.open(tweetUrl, '_blank');
   };
 
-  const dataURItoBlob = (dataURI) => {
-    const byteString = atob(dataURI.split(',')[1]);
-    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-    }
-    return new Blob([ab], { type: mimeString });
-  };
-
   const handleSaveToGallery = () => {
     drawCanvas();
-    const canvas = canvasRef.current;
-    const newMeme = canvas.toDataURL();
+    const newMeme = canvasRef.current.toDataURL();
     const updatedGallery = [newMeme, ...gallery];
     setGallery(updatedGallery);
     localStorage.setItem('memeGallery', JSON.stringify(updatedGallery));
   };
 
   const drawCanvas = () => {
+    if (!uploadedImage) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     const img = new Image();
-    img.src = uploadedImage;
     img.onload = () => {
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
-      if (faceImage) {
-        ctx.drawImage(faceImage, facePosition.x, facePosition.y, faceSize, faceSize);
-      }
+      if (faceImage) ctx.drawImage(faceImage, facePosition.x, facePosition.y, faceSize, faceSize);
     };
+    img.src = uploadedImage;
   };
 
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setDragStart({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    const dx = e.clientX - dragStart.x;
-    const dy = e.clientY - dragStart.y;
-    setFacePosition(prev => ({ x: prev.x + dx, y: prev.y + dy }));
-    setDragStart({ x: e.clientX, y: e.clientY });
-  };
-
+  const handleMouseDown = (e) => setDragStartAndDragging(e.clientX, e.clientY);
+  const handleMouseUp = () => setIsDragging(false);
+  const handleMouseMove = (e) => handleDragMove(e.clientX, e.clientY);
   const handleTouchStart = (e) => {
-    const touch = e.touches[0];
-    setIsDragging(true);
-    setDragStart({ x: touch.clientX, y: touch.clientY });
+    const t = e.touches[0];
+    setDragStartAndDragging(t.clientX, t.clientY);
   };
-
   const handleTouchMove = (e) => {
-    if (!isDragging) return;
-    const touch = e.touches[0];
-    const dx = touch.clientX - dragStart.x;
-    const dy = touch.clientY - dragStart.y;
-    setFacePosition(prev => ({ x: prev.x + dx, y: prev.y + dy }));
-    setDragStart({ x: touch.clientX, y: touch.clientY });
+    const t = e.touches[0];
+    handleDragMove(t.clientX, t.clientY);
   };
+  const handleTouchEnd = () => setIsDragging(false);
 
-  const handleTouchEnd = () => {
-    setIsDragging(false);
+  const setDragStartAndDragging = (x, y) => {
+    setIsDragging(true);
+    setDragStart({ x, y });
+  };
+  const handleDragMove = (x, y) => {
+    if (!isDragging) return;
+    const dx = x - dragStart.x;
+    const dy = y - dragStart.y;
+    setFacePosition(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+    setDragStart({ x, y });
   };
 
   return (
-    <div className={`${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'} min-h-screen font-retro flex flex-col`}>
-      <nav className="bg-gray-800 text-white py-4 px-6 flex justify-between items-center shadow-md">
-        <h1 className="text-xl font-bold">NewFace</h1>
-        <ul className="flex space-x-4 items-center">
-          <li><a href="/" className="hover:text-yellow-300">Meme Maker</a></li>
-          <li><a href="https://knowyourmeme.com/memes/newface" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-300">Lore</a></li>
-          <li><a href="https://x.com/search?q=3zaxf282ydBP6CANCQv4bahpPThSUmcGMSVgMdDBpump" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-300">X</a></li>
-          <li><a href="https://dexscreener.com/solana/9dh4ocz8oz6kvzrnofzj7ezkkmsqega54qakyptsxpss" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-300">DEXScreener</a></li>
-          <li>
-            <button onClick={toggleTheme} className="ml-4 bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-1 px-2 rounded">
-              {darkMode ? '☀️ Light' : '🌙 Dark'}
-            </button>
-          </li>
-        </ul>
-      </nav>
+    <div className={`${darkMode ? 'bg-gray-950 text-white' : 'bg-gray-50 text-black'} min-h-screen font-sans`}> 
+      <header className="w-full py-4 px-6 flex justify-between items-center border-b border-gray-700 sticky top-0 z-10 bg-inherit backdrop-blur">
+        <h1 className="text-xl font-semibold tracking-tight">NewFace</h1>
+        <nav className="flex space-x-6 text-sm">
+          <a href="/">Meme Maker</a>
+          <a href="https://knowyourmeme.com/memes/newface" target="_blank" rel="noreferrer">Lore</a>
+          <a href="https://x.com/search?q=3zaxf282ydBP6CANCQv4bahpPThSUmcGMSVgMdDBpump" target="_blank" rel="noreferrer">X</a>
+          <a href="https://dexscreener.com/solana/9dh4ocz8oz6kvzrnofzj7ezkkmsqega54qakyptsxpss" target="_blank" rel="noreferrer">DEX</a>
+          <button onClick={toggleTheme}>{darkMode ? '☀️ Light' : '🌙 Dark'}</button>
+        </nav>
+      </header>
 
-      <main className="flex-grow flex justify-center items-center">
-        <div className="w-full max-w-4xl p-6 flex flex-col items-center space-y-6">
-          <h2 className="text-3xl font-bold">🎭 NewFace Meme Maker</h2>
-
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleUpload}
-            className="bg-white text-black rounded px-2 py-1"
-          />
-
-          <button onClick={loadFaceImage} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Add New Face</button>
+      <main className="max-w-4xl mx-auto w-full px-4 py-12 space-y-10">
+        <section className="flex flex-col items-center gap-6">
+          <h2 className="text-3xl font-bold tracking-tight text-center">🎭 NewFace Meme Maker</h2>
+          <input type="file" accept="image/*" onChange={handleUpload} className="rounded border px-3 py-2 text-black" />
+          <button onClick={loadFaceImage} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded shadow">Add New Face</button>
 
           <div
             ref={containerRef}
-            className="relative border border-gray-600 mt-4"
+            className="relative border border-dashed border-gray-400 rounded mt-4"
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
@@ -200,30 +163,30 @@ export default function MemeMaker() {
             max="300"
             value={faceSize}
             onChange={(e) => setFaceSize(parseInt(e.target.value))}
-            className="w-64 mt-2"
+            className="w-64 mt-4"
           />
 
-          <div className="space-x-4 mt-4">
-            <button onClick={drawCanvas} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">Render Meme</button>
-            <button onClick={handleDownload} className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded">Download Meme</button>
-            <button onClick={handleTweet} className="bg-blue-400 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded">Tweet #NewFace</button>
-            <button onClick={handleSaveToGallery} className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded">Save to Gallery</button>
+          <div className="flex flex-wrap justify-center gap-4">
+            <button onClick={drawCanvas} className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded shadow">Render</button>
+            <button onClick={handleDownload} className="bg-yellow-400 hover:bg-yellow-500 text-black py-2 px-4 rounded shadow">Download</button>
+            <button onClick={handleTweet} className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded shadow">Tweet</button>
+            <button onClick={handleSaveToGallery} className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded shadow">Save</button>
           </div>
+        </section>
 
-          <div className="w-full mt-8">
-            <h2 className="text-2xl mb-2">🖼 Meme Gallery</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {gallery.map((meme, idx) => (
-                <img key={idx} src={meme} alt={`meme-${idx}`} className="w-full border border-white rounded" />
-              ))}
-            </div>
+        <section className="mt-12">
+          <h3 className="text-2xl font-semibold mb-4">🖼 Meme Gallery</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {gallery.map((meme, idx) => (
+              <img key={idx} src={meme} alt={`meme-${idx}`} className="w-full rounded border" />
+            ))}
           </div>
-        </div>
+        </section>
       </main>
 
-      <footer className="text-center text-sm py-6 px-4 bg-gray-800 text-gray-300">
-        <div className="mb-1">© 2025 NewFace Meme Maker</div>
-        <div className="mb-1">Contract: <span className="font-mono text-yellow-400">3zaxf282ydBP6CANCQv4bahpPThSUmcGMSVgMdDBpump</span></div>
+      <footer className="text-center text-sm py-6 px-4 border-t border-gray-800">
+        <p>© 2025 NewFace Meme Maker</p>
+        <p className="text-xs mt-1">Contract: <span className="font-mono text-yellow-400">3zaxf282ydBP6CANCQv4bahpPThSUmcGMSVgMdDBpump</span></p>
       </footer>
     </div>
   );
