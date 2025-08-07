@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 
 export default function MemeMaker() {
   const canvasRef = useRef(null);
@@ -93,7 +92,7 @@ export default function MemeMaker() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8 flex flex-col items-center space-y-6">
+    <div className="min-h-screen bg-gray-900 text-white p-8 flex flex-col items-center space-y-6 font-retro">
       <h1 className="text-4xl font-bold mb-4">🎭 NewFace Meme Maker</h1>
       <input
         type="file"
@@ -101,7 +100,7 @@ export default function MemeMaker() {
         onChange={handleUpload}
         className="mb-4 bg-white text-black rounded px-2 py-1"
       />
-      <Button onClick={loadFaceImage}>Add New Face</Button>
+      <button onClick={loadFaceImage} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Add New Face</button>
       <div
         ref={containerRef}
         className="relative border border-gray-600 mt-6"
@@ -136,10 +135,10 @@ export default function MemeMaker() {
         className="w-64 mt-2"
       />
       <div className="space-x-4 mt-4">
-        <Button onClick={drawCanvas}>Render Meme</Button>
-        <Button onClick={handleDownload}>Download Meme</Button>
-        <Button onClick={handleTweet}>Tweet #NewFace</Button>
-        <Button onClick={handleSaveToGallery}>Save to Gallery</Button>
+        <button onClick={drawCanvas} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">Render Meme</button>
+        <button onClick={handleDownload} className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded">Download Meme</button>
+        <button onClick={handleTweet} className="bg-blue-400 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded">Tweet #NewFace</button>
+        <button onClick={handleSaveToGallery} className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded">Save to Gallery</button>
       </div>
       <div className="w-full mt-8">
         <h2 className="text-2xl mb-2">🖼 Meme Gallery</h2>
