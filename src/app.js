@@ -1,4 +1,3 @@
-export default function Mememaker() {
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -152,5 +151,4 @@ export default function MemeMaker() {
       </div>
     </div>
   );
-}
 }
